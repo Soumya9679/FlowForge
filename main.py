@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from app.schemas import WorkFlowCreate
+from app.schemas import WorkFlowCreate, WorkFlowResponse
 
 app = FastAPI()
 
@@ -7,26 +7,26 @@ app = FastAPI()
 def read_root():
     return {"Message": "Application is healthy"}
 
-workflows    = []
-@app.post("/workflows")
+workflows    : list[WorkFlowResponse]= []
+@app.post("/workflows", response_model=WorkFlowResponse, status_code=201)
 def create_workflow(workflow: WorkFlowCreate):
-    workflow = {
-        "id": len(workflows) + 1,
-        "name": workflow.name,
-        "description": workflow.description,
-        "trigger_type": workflow.trigger_type,
-        "enabled": workflow.enabled
-    }
-    workflows.append(workflow)
-    return workflow
+    workflow_data = WorkFlowResponse(
+        id=len(workflows) + 1,
+        name=workflow.name,
+        description=workflow.description,
+        trigger_type=workflow.trigger_type,
+        enabled=workflow.enabled
+    )
+    workflows.append(workflow_data)
+    return workflow_data
 
-@app.get("/workflows")
+@app.get("/workflows", response_model=list[WorkFlowResponse])
 def get_workflows():
     return workflows
 
-@app.get("/workflows/{id}")
+@app.get("/workflows/{id}", response_model=WorkFlowResponse)
 def get_workflow(id: int):
     for workflow in workflows:
-        if workflow["id"] == id:
+        if workflow.id == id:
             return workflow
     raise HTTPException(status_code=404, detail="Workflow not found")
