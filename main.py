@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from app.schemas import WorkFlowCreate, WorkFlowResponse
+from app.schemas import WorkFlowCreate, WorkFlowResponse, WorkflowUpdate
 
 app = FastAPI()
 
@@ -28,5 +28,15 @@ def get_workflows():
 def get_workflow(id: int):
     for workflow in workflows:
         if workflow.id == id:
+            return workflow
+    raise HTTPException(status_code=404, detail="Workflow not found")
+
+@app.patch("/workflows/{id}", response_model=WorkFlowResponse)
+def update_workflow(id: int, workflow_update: WorkflowUpdate):
+    for workflow in workflows:
+        if workflow.id == id:
+            update_data = workflow_update.model_dump(exclude_unset=True)
+            for key, value in update_data.items():
+                setattr(workflow, key, value)
             return workflow
     raise HTTPException(status_code=404, detail="Workflow not found")
